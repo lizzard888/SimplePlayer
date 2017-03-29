@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <gst/gst.h>
 #include <glib.h>
 
@@ -9,10 +10,11 @@ bus_call (GstBus     *bus,
 {
   GMainLoop *loop = (GMainLoop *) data;
 
+  g_print("Message received!\n");
+
   switch (GST_MESSAGE_TYPE (msg)) {
 
     case GST_MESSAGE_EOS:
-      g_print ("End of stream\n");
       g_main_loop_quit (loop);
       break;
 
@@ -36,12 +38,53 @@ bus_call (GstBus     *bus,
   return TRUE;
 }
 
+void *
+player_controls_function(GstElement *pipeline)
+{
+    GstBus *bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
+    char str;
+    while(TRUE){
+      scanf("%c", &str);
+      switch (str) {
+        case 'P':
+        {
+          if(GST_STATE_TARGET(pipeline) == GST_STATE_PLAYING){
+            gst_element_set_state (pipeline, GST_STATE_PAUSED);
+            g_print ("Paused\n");
+          }
+          else{
+            gst_element_set_state (pipeline, GST_STATE_PLAYING);
+            g_print ("Running\n");
+          }
+          break;
+        }
+        case 'S':
+        {
+          gst_bus_post (bus, gst_message_new_eos(NULL));
+          break;
+        }
+        case '+':
+        {
+          //TODO
+          break;
+        }
+        case '-':
+        {
+          //TODO
+          break;
+        }
+      }
+    }
+}
 
 int
 main (int   argc,
       char *argv[])
 {
   GMainLoop *loop;
+
+  GThread *ControlsThread;
+  GError *err = NULL;
 
   GstElement *pipeline, *source, *wavparser, *conv, *sink;
   GstBus *bus;
@@ -54,8 +97,12 @@ main (int   argc,
 
 
   /* Check input arguments */
-  if (argc != 2) {
-    g_printerr ("Usage: %s <Wav filename>\n", argv[0]);
+  if (argc != 2 && argc != 3){
+    g_printerr ("Usage: %s <Wav filename> [-P play]\n", argv[0]);
+    return -1;
+  }
+  else if (argc == 3 && strcmp(argv[2], "-P")){
+    g_printerr ("Inappropriate flag\n");
     return -1;
   }
 
@@ -91,25 +138,31 @@ main (int   argc,
   //gst_element_link (source, wavparser);
   gst_element_link_many (source, wavparser, conv, sink, NULL);
 
-
-  /* Set the pipeline to "playing" state*/
+  /* Set the pipeline to appropriate state*/
   g_print ("Now playing: %s\n", argv[1]);
-  gst_element_set_state (pipeline, GST_STATE_PLAYING);
-
-
-  /* Iterate */
-  g_print ("Running...\n");
-  g_main_loop_run (loop);
-
+  if (argc == 3){
+    gst_element_set_state (pipeline, GST_STATE_PLAYING);
+    g_print ("Running\n");
+  }
+  else{
+    gst_element_set_state (pipeline, GST_STATE_PAUSED);
+    g_print ("Paused\n");
+  }
+  if(!(ControlsThread = g_thread_try_new(NULL, (GThreadFunc)player_controls_function, pipeline, &err))){
+    g_printerr("Thread create failed: %s\n", err->message );
+    g_error_free(err);
+    return -1;
+  }
+  g_main_loop_run(loop);
 
   /* Out of the main loop, clean up nicely */
-  g_print ("Returned, stopping playback\n");
+  g_print ("Stopped\n");
   gst_element_set_state (pipeline, GST_STATE_NULL);
 
-  g_print ("Deleting pipeline\n");
   gst_object_unref (GST_OBJECT (pipeline));
   g_source_remove (bus_watch_id);
   g_main_loop_unref (loop);
+  g_thread_unref(ControlsThread);
 
   return 0;
 }
