@@ -4,24 +4,38 @@
 #include <gst/gst.h>
 #include <glib.h>
 
+
+/**
+* Structure used to provide application data to a ControlsThread
+* @see ControlsThread
+* @see main
+*/
 struct Data{
-  GstBus *bus;
-  GstElement *pipeline, *volume;
+  GstBus *bus; /**< GStreamer bus used in application.*/
+  GstElement *pipeline, *volume; /**< GStreamer pipeline and volume controlling elements.*/
 };
 
+/**
+* Function to use as bus watch, which captures messages posted on bus.
+* @param bus - bus capturing messages.
+* @param msg - message to handle.
+* @param data - pointer to main loop.
+* @see main
+* @return TRUE
+*/
 static gboolean
 bus_call (GstBus     *bus,
           GstMessage *msg,
           gpointer    data)
 {
   GMainLoop *loop = (GMainLoop *) data;
-
+  // Message handling
   switch (GST_MESSAGE_TYPE (msg)) {
-
+    // End of stream message -> closing application.
     case GST_MESSAGE_EOS:
       g_main_loop_quit (loop);
       break;
-
+    // Error message -> parse it, print on stderr and close application.
     case GST_MESSAGE_ERROR: {
       gchar  *debug;
       GError *error;
@@ -35,6 +49,7 @@ bus_call (GstBus     *bus,
       g_main_loop_quit (loop);
       break;
     }
+    // Default -> do nothing.
     default:
       break;
   }
@@ -42,13 +57,22 @@ bus_call (GstBus     *bus,
   return TRUE;
 }
 
+/**
+* Function used by ControlsThread. It is waiting for commands on standard input.
+* @param data_instance - A Structure keeping all necessary data for handling commands.
+* @see main
+* @see Data
+*/
 void *
 player_controls_function(struct Data *data_instance)
 {
-    char str;
+    char str; // Used for capturing characters.
     while(TRUE){
+      // Will exit and unref from main.
       scanf("%c", &str);
+      // Commands handling.
       switch (str) {
+        // P - play or pause.
         case 'P':
         {
           if(GST_STATE_TARGET(data_instance->pipeline) == GST_STATE_PLAYING){
@@ -61,11 +85,13 @@ player_controls_function(struct Data *data_instance)
           }
           break;
         }
+        // S - stop. Send end of stream message to bus.
         case 'S':
         {
           gst_bus_post (data_instance->bus, gst_message_new_eos(NULL));
           break;
         }
+        // + - increase volume if possible.
         case '+':
         {
           gdouble val;
@@ -77,6 +103,7 @@ player_controls_function(struct Data *data_instance)
           g_print ("Volume: %d%%\n", (int)(((val/1.0)*100)+0.5));
           break;
         }
+        // - - decrease volume if possible.
         case '-':
         {
           gdouble val;
@@ -88,14 +115,25 @@ player_controls_function(struct Data *data_instance)
           g_print ("Volume: %d%%\n", (int)(((val/1.0)*100)+0.5));
           break;
         }
+        // Default not definied.
       }
     }
 }
 
+/**
+* Main function. Creates all necessary objects and handlers and starts main loop. Memory is freed after quit.
+* @param argc - arguments counter.
+* @param argv - file name with extension and optional play flag.
+* @see player_controls_function
+* @see Data
+* @see bus_call
+* @return int;
+*/
 int
 main (int   argc,
       char *argv[])
 {
+  // Declaring all needed objects.
   GMainLoop *loop;
 
   GThread *ControlsThread;
@@ -105,13 +143,13 @@ main (int   argc,
   GstBus *bus;
   guint bus_watch_id;
 
-  /* Initialisation */
+  // GStreamer and Glib Main Loop initialisation.
   gst_init (&argc, &argv);
 
   loop = g_main_loop_new (NULL, FALSE);
 
 
-  /* Check input arguments */
+  // Check input arguments
   if (argc != 2 && argc != 3){
     g_printerr ("Usage: %s <Wav filename> [-P play]\n", argv[0]);
     return -1;
@@ -121,7 +159,7 @@ main (int   argc,
     return -1;
   }
 
-  /* Create gstreamer elements */
+  // Create GStreamer elements
   pipeline = gst_pipeline_new ("audio-player");
   source   = gst_element_factory_make ("filesrc",       "file-source");
   wavparser  = gst_element_factory_make ("wavparse",      "wav-parser");
@@ -134,26 +172,24 @@ main (int   argc,
     return -1;
   }
 
-  /* Set up the pipeline */
+  // Set up the pipeline.
 
-  /* we set the input filename to the source element */
+  // We set the input filename to the source element.
   g_object_set (G_OBJECT (source), "location", argv[1], NULL);
 
-  /* we add a message handler */
+  // Adding message handler to bus.
   bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
   bus_watch_id = gst_bus_add_watch (bus, bus_call, loop);
   gst_object_unref (bus);
 
-  /* we add all elements into the pipeline */
-  /* file-source | wav-parser | converter | alsa-output */
+  // Adding elements to pipeline.
   gst_bin_add_many (GST_BIN (pipeline),
                     source, wavparser, volume, conv, sink, NULL);
 
-  /* we link the elements together */
-  /* file-source -> wav-parser -> converter -> alsa-output */
+  // Linking the elements.
   gst_element_link_many (source, wavparser, volume, conv, sink, NULL);
 
-  /* Set the pipeline to appropriate state*/
+  // Setting pipeline state.
   g_print ("Now playing: %s\n", argv[1]);
   if (argc == 3){
     gst_element_set_state (pipeline, GST_STATE_PLAYING);
@@ -164,21 +200,24 @@ main (int   argc,
     g_print ("Paused\n");
   }
 
+  // Creating Data object instance for ControlsThread.
   struct Data *data_instance = malloc(sizeof(struct Data));
   data_instance->bus = bus;
   data_instance->volume = volume;
   data_instance->pipeline = pipeline;
 
+  // Creating ControlsThread, which provide command handling.
   if(!(ControlsThread = g_thread_try_new(NULL, (GThreadFunc)player_controls_function, data_instance, &err))){
     g_printerr("Thread create failed: %s\n", err->message );
     g_error_free(err);
     return -1;
   }
 
+  // Setting starting volume level to 50%.
   g_object_set(G_OBJECT (volume), "volume", 0.5, NULL);
   g_main_loop_run(loop);
 
-  /* Out of the main loop, clean up nicely */
+  // Out of main loop. Clearing memory.
   g_print ("Stopped\n");
   gst_element_set_state (pipeline, GST_STATE_NULL);
 
