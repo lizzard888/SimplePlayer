@@ -139,7 +139,7 @@ main (int   argc,
   GThread *ControlsThread;
   GError *err = NULL;
 
-  GstElement *pipeline, *source, *wavparser, *volume, *conv, *sink;
+  GstElement *pipeline, *source, *parser, *volume, *conv, *sink;
   GstBus *bus;
   guint bus_watch_id;
 
@@ -151,23 +151,37 @@ main (int   argc,
 
   // Check input arguments
   if (argc != 2 && argc != 3){
-    g_printerr ("Usage: %s <Wav filename> [-P play]\n", argv[0]);
+    g_printerr ("Usage: %s <wav or acc filename> [-P play]\n", argv[0]);
     return -1;
   }
   else if (argc == 3 && strcmp(argv[2], "-P")){
     g_printerr ("Inappropriate flag\n");
     return -1;
   }
-
-  // Create GStreamer elements
+  // Check extension
+  guint len = strlen(argv[1]);
+  if (len < 5){
+    g_printerr ("Usage: %s <wav or acc filename> [-P play]\n", argv[0]);
+    return -1;
+  }
+  const gchar *extension = &argv[1][len-3];
+  // Create parser first
+  if (strcmp(extension, "wav") == 0)
+    parser  = gst_element_factory_make ("wavparse", "wav-parser");
+  else if (strcmp(extension, "aac") == 0)
+    parser  = gst_element_factory_make ("faad", "acc-parser");
+  else{
+    g_printerr ("Unknown file extension\n");
+    return -1;
+  }
+  // Create the rest of GStreamer elements
   pipeline = gst_pipeline_new ("audio-player");
-  source   = gst_element_factory_make ("filesrc",       "file-source");
-  wavparser  = gst_element_factory_make ("wavparse",      "wav-parser");
-  volume = gst_element_factory_make ("volume",      "volume");
+  source   = gst_element_factory_make ("filesrc", "file-source");
+  volume = gst_element_factory_make ("volume", "volume");
   conv     = gst_element_factory_make ("audioconvert",  "converter");
   sink     = gst_element_factory_make ("autoaudiosink", "audio-output");
 
-  if (!pipeline || !source || !wavparser || !volume || !conv || !sink) {
+  if (!pipeline || !source || !parser || !volume || !conv || !sink) {
     g_printerr ("One element could not be created. Exiting.\n");
     return -1;
   }
@@ -184,10 +198,10 @@ main (int   argc,
 
   // Adding elements to pipeline.
   gst_bin_add_many (GST_BIN (pipeline),
-                    source, wavparser, volume, conv, sink, NULL);
+                    source, parser, volume, conv, sink, NULL);
 
   // Linking the elements.
-  gst_element_link_many (source, wavparser, volume, conv, sink, NULL);
+  gst_element_link_many (source, parser, volume, conv, sink, NULL);
 
   // Setting pipeline state.
   g_print ("Now playing: %s\n", argv[1]);
