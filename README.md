@@ -12,6 +12,7 @@ Makefile included.
 Usage:
 - ./player -h     (show help)
 - ./player <wav or aac file with extension> [-P optional - play immediately]
+
 Examples:
 - ./player song.wav -P
 - ./player song.wav
