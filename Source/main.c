@@ -150,18 +150,35 @@ main (int   argc,
 
 
   // Check input arguments
-  if (argc != 2 && argc != 3){
-    g_printerr ("Usage: %s <wav or acc filename> [-P play]\n", argv[0]);
+  if (argc != 3 && argc != 2){
+    g_printerr ("Usage: %s <wav or acc filename> [-P play]\nor: %s -h (for help)\n", argv[0], argv[0]);
+    g_main_loop_unref (loop);
     return -1;
   }
   else if (argc == 3 && strcmp(argv[2], "-P")){
     g_printerr ("Inappropriate flag\n");
+    g_main_loop_unref (loop);
     return -1;
+  }
+  // Help request handling
+  else if (argc == 2 && !(strcmp(argv[1], "-h"))){
+    g_print ("Usage: %s\n\
+    args:\n\
+      <wav or acc filename with extension>\n\
+      [-P play if you want to start playing file all over]\n\
+    commands(type in console):\n\
+      (P) - play/pause\n\
+      (S) - stop and close\n\
+      (+) - volume up\n\
+      (-) - volume down\n", argv[0]);
+    g_main_loop_unref (loop);
+    return 0;
   }
   // Check extension
   guint len = strlen(argv[1]);
   if (len < 5){
-    g_printerr ("Usage: %s <wav or acc filename> [-P play]\n", argv[0]);
+    g_printerr ("Usage: %s <wav or acc filename> [-P play]\nor: %s -h (for help)\n", argv[0], argv[0]);
+    g_main_loop_unref (loop);
     return -1;
   }
   const gchar *extension = &argv[1][len-3];
@@ -173,6 +190,7 @@ main (int   argc,
   else{
     g_printerr ("Unknown file extension\n");
     return -1;
+    g_main_loop_unref (loop);
   }
   // Create the rest of GStreamer elements
   pipeline = gst_pipeline_new ("audio-player");
@@ -184,6 +202,7 @@ main (int   argc,
   if (!pipeline || !source || !parser || !volume || !conv || !sink) {
     g_printerr ("One element could not be created. Exiting.\n");
     return -1;
+    g_main_loop_unref (loop);
   }
 
   // Set up the pipeline.
