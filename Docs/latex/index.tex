@@ -1,0 +1,29 @@
+Simple audio player program with command-\/line interface. Works with .wav and .aac file formats.
+
+Requriements\+:
+\begin{DoxyItemize}
+\item newest version of G\+Streamer\+: \href{https://gstreamer.freedesktop.org/}{\tt https\+://gstreamer.\+freedesktop.\+org/}
+\item gcc compiler\+: \href{https://gcc.gnu.org/}{\tt https\+://gcc.\+gnu.\+org/}
+\end{DoxyItemize}
+
+Installation\+: Makefile included.
+
+Usage\+:
+\begin{DoxyItemize}
+\item ./player -\/h (show help)
+\item ./player $<$wav or=\char`\"{}\char`\"{} aac=\char`\"{}\char`\"{} file=\char`\"{}\char`\"{} with=\char`\"{}\char`\"{} extension$>$=\char`\"{}\char`\"{}$>$ \mbox{[}-\/P optional -\/ play immediately\mbox{]}
+\end{DoxyItemize}
+
+Examples\+:
+\begin{DoxyItemize}
+\item ./player song.\+wav -\/P
+\item ./player song.\+wav
+\end{DoxyItemize}
+
+Commands (via standard input)\+:
+\begin{DoxyItemize}
+\item ( P ) -\/ play / pause
+\item ( S ) -\/ stop and quit
+\item ( + ) -\/ volume up (10\%)
+\item ( -\/ ) -\/ volume down (10\%) 
+\end{DoxyItemize}

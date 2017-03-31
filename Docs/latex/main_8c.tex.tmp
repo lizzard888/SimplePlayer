@@ -1,0 +1,104 @@
+\hypertarget{main_8c}{}\section{Source/main.c File Reference}
+\label{main_8c}\index{Source/main.\+c@{Source/main.\+c}}
+{\ttfamily \#include $<$stdio.\+h$>$}\\*
+{\ttfamily \#include $<$stdlib.\+h$>$}\\*
+{\ttfamily \#include $<$string.\+h$>$}\\*
+{\ttfamily \#include $<$gst/gst.\+h$>$}\\*
+{\ttfamily \#include $<$glib.\+h$>$}\\*
+Include dependency graph for main.\+c\+:
+% FIG 0
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structData}{Data}
+\begin{DoxyCompactList}\small\item\em Structure used to provide application data to a Controls\+Thread. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+static gboolean \hyperlink{main_8c_ae4e2c4a811bad2c04f720273f8223ed9}{bus\+\_\+call} (Gst\+Bus $\ast$bus, Gst\+Message $\ast$msg, gpointer data)
+\begin{DoxyCompactList}\small\item\em Function to use as bus watch, which captures messages posted on bus. \end{DoxyCompactList}\item 
+void $\ast$ \hyperlink{main_8c_a4b27fa025a75deaa9edeb673cefbb8a0}{player\+\_\+controls\+\_\+function} (struct \hyperlink{structData}{Data} $\ast$data\+\_\+instance)
+\begin{DoxyCompactList}\small\item\em Function used by Controls\+Thread. \end{DoxyCompactList}\item 
+int \hyperlink{main_8c_a0ddf1224851353fc92bfbff6f499fa97}{main} (int argc, char $\ast$argv\mbox{[}$\,$\mbox{]})
+\begin{DoxyCompactList}\small\item\em Main function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\index{main.\+c@{main.\+c}!bus\+\_\+call@{bus\+\_\+call}}
+\index{bus\+\_\+call@{bus\+\_\+call}!main.\+c@{main.\+c}}
+\subsubsection[{\texorpdfstring{bus\+\_\+call(\+Gst\+Bus $\ast$bus, Gst\+Message $\ast$msg, gpointer data)}{bus_call(GstBus *bus, GstMessage *msg, gpointer data)}}]{\setlength{\rightskip}{0pt plus 5cm}static gboolean bus\+\_\+call (
+\begin{DoxyParamCaption}
+\item[{Gst\+Bus $\ast$}]{bus, }
+\item[{Gst\+Message $\ast$}]{msg, }
+\item[{gpointer}]{data}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}\hypertarget{main_8c_ae4e2c4a811bad2c04f720273f8223ed9}{}\label{main_8c_ae4e2c4a811bad2c04f720273f8223ed9}
+
+
+Function to use as bus watch, which captures messages posted on bus. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em bus} & -\/ bus capturing messages. \\
+\hline
+{\em msg} & -\/ message to handle. \\
+\hline
+{\em data} & -\/ pointer to main loop. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{main_8c_a0ddf1224851353fc92bfbff6f499fa97}{main} 
+\end{DoxySeeAlso}
+\begin{DoxyReturn}{Returns}
+T\+R\+UE 
+\end{DoxyReturn}
+\index{main.\+c@{main.\+c}!main@{main}}
+\index{main@{main}!main.\+c@{main.\+c}}
+\subsubsection[{\texorpdfstring{main(int argc, char $\ast$argv[])}{main(int argc, char *argv[])}}]{\setlength{\rightskip}{0pt plus 5cm}int main (
+\begin{DoxyParamCaption}
+\item[{int}]{argc, }
+\item[{char $\ast$}]{argv\mbox{[}$\,$\mbox{]}}
+\end{DoxyParamCaption}
+)}\hypertarget{main_8c_a0ddf1224851353fc92bfbff6f499fa97}{}\label{main_8c_a0ddf1224851353fc92bfbff6f499fa97}
+
+
+Main function. 
+
+Creates all necessary objects and handlers and starts main loop. Memory is freed after quit. 
+\begin{DoxyParams}{Parameters}
+{\em argc} & -\/ arguments counter. \\
+\hline
+{\em argv} & -\/ file name with extension and optional play flag. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{main_8c_a4b27fa025a75deaa9edeb673cefbb8a0}{player\+\_\+controls\+\_\+function} 
+
+\hyperlink{structData}{Data} 
+
+\hyperlink{main_8c_ae4e2c4a811bad2c04f720273f8223ed9}{bus\+\_\+call} 
+\end{DoxySeeAlso}
+\begin{DoxyReturn}{Returns}
+int; 
+\end{DoxyReturn}
+\index{main.\+c@{main.\+c}!player\+\_\+controls\+\_\+function@{player\+\_\+controls\+\_\+function}}
+\index{player\+\_\+controls\+\_\+function@{player\+\_\+controls\+\_\+function}!main.\+c@{main.\+c}}
+\subsubsection[{\texorpdfstring{player\+\_\+controls\+\_\+function(struct Data $\ast$data\+\_\+instance)}{player_controls_function(struct Data *data_instance)}}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ player\+\_\+controls\+\_\+function (
+\begin{DoxyParamCaption}
+\item[{struct {\bf Data} $\ast$}]{data\+\_\+instance}
+\end{DoxyParamCaption}
+)}\hypertarget{main_8c_a4b27fa025a75deaa9edeb673cefbb8a0}{}\label{main_8c_a4b27fa025a75deaa9edeb673cefbb8a0}
+
+
+Function used by Controls\+Thread. 
+
+It is waiting for commands on standard input. 
+\begin{DoxyParams}{Parameters}
+{\em data\+\_\+instance} & -\/ A Structure keeping all necessary data for handling commands. \\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{main_8c_a0ddf1224851353fc92bfbff6f499fa97}{main} 
+
+\hyperlink{structData}{Data} 
+\end{DoxySeeAlso}
