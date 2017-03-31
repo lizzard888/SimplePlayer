@@ -1,4 +1,4 @@
-Simple Audio Player program with command-line interface. Works with .wav and .aac file formats.
+Simple audio player program with command-line interface. Works with .wav and .aac file formats.
 
 Requriements:
 - newest version of GStreamer:
@@ -10,14 +10,14 @@ Installation:
 Makefile included.
 
 Usage:
-./player -h     (show help)
-./player <wav or aac file with extension> [-P optional - play immediately]
-examples:
-./player song.wav -P
-./player song.wav
+- ./player -h     (show help)
+- ./player <wav or aac file with extension> [-P optional - play immediately]
+Examples:
+- ./player song.wav -P
+- ./player song.wav
 
 Commands (via standard input):
-( P ) - play / pause
-( S ) - stop and quit
-( + ) - volume up (10%)
-( - ) - volume down (10%)
+- ( P ) - play / pause
+- ( S ) - stop and quit
+- ( + ) - volume up (10%)
+- ( - ) - volume down (10%)
